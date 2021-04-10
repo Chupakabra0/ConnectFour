@@ -10,4 +10,4 @@ if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
 endif()
 
 add_executable(ConnectFour
-        src/main.cpp include/Board/Board.hpp)
+        src/main.cpp include/Board/Board.hpp include/BoardController/BoardController.hpp)
