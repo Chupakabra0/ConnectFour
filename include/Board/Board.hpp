@@ -3,6 +3,7 @@
 #include <array>
 #include <algorithm>
 #include <iostream>
+#include <sstream>
 
 enum class Row : short {
     FIRST, SECOND, THIRD, FOURTH, FIFTH, SIXTH, COUNT
@@ -49,13 +50,20 @@ public:
             return out;
         }
 
+        // TODO some util-func
+        std::string delimiter;
+        for (auto i = 0u; i < 2 * ColumnsCount + ColumnsCount / 7; ++i) {
+            delimiter += "--";
+        }
+        //
+
         for (auto i = 0; i < RowsCount; ++i) {
-            for (auto j = 0; j < ColumnsCount; ++j) {
-                out << static_cast<char>(board.GetCell(Row(i), Column(j)));
-                if (j != ColumnsCount - 1) {
-                    out << " ";
-                }
+            out << "| " << static_cast<char>(board.GetCell(Row(i), Column::FIRST)) << " | ";
+            for (auto j = 1; j < ColumnsCount; ++j) {
+                out << static_cast<char>(board.GetCell(Row(i), Column(j))) << " | ";
             }
+
+            out << std::endl << delimiter;
             if (i != RowsCount - 1) {
                 out << std::endl;
             }
