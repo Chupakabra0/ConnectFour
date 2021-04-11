@@ -9,7 +9,6 @@ class Game {
 public:
     //------------------------------------------------- CTOR SECTION -------------------------------------------------//
 
-    Game() = delete;
     Game(const Game&) = delete;
     Game(Game&&) noexcept = default;
 
@@ -21,22 +20,37 @@ public:
 
     //----------------------------------------------- DTOR SECTION ---------------------------------------------------//
 
-    ~Board() noexcept = default;
+    ~Game() noexcept = default;
 
     //--------------------------------------------- STATIC SECTION ---------------------------------------------------//
 
-    static auto& GetInstance(Human* first, Human* second) {
-        static Game instance(first, second);
-        return &instance;
+    static auto& GetInstance() {
+        static Game instance;
+        return instance;
     }
 
     //-------------------------------------------- ACCESSOR SECTION --------------------------------------------------//
 
-    
+    [[nodiscard]] const auto& GetBoard() const {
+        return this->board_;
+    }
+
+    [[nodiscard]] auto* GetFirstPlayer() const {
+        return this->players_.first.get();
+    }
+
+    [[nodiscard]] auto* GetSecondPlayer() const {
+        return this->players_.second.get();
+    }
+
+    [[nodiscard]] auto* GetPlayerByIndex(const short index) const {
+        return index == 1 ? this->GetFirstPlayer() : this->GetSecondPlayer();
+    }
 
 private:
-    explicit Game(Human* first, Human* second)
-        : players_({ std::make_unique<Human>(first), std::make_unique<Human>(second) }), board_() {}
+    Game()
+        : players_({ std::make_unique<Human>(MoveCharacters::FIRST_PLAYER),
+            std::make_unique<Human>(MoveCharacters::SECOND_PLAYER) }), board_() {}
 
     Board<RowsCount, ColumnsCount> board_;
     std::pair<std::unique_ptr<Human>, std::unique_ptr<Human>> players_;

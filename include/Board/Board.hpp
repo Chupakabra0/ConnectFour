@@ -6,6 +6,7 @@
 #include <sstream>
 
 #include "Player/Player.hpp"
+#include "MoveCharacters/MoveCharacters.hpp"
 
 enum class Row : short {
     FIRST, SECOND, THIRD, FOURTH, FIFTH, SIXTH, COUNT
@@ -13,18 +14,6 @@ enum class Row : short {
 
 enum class Column : short {
     FIRST, SECOND, THIRD, FOURTH, FIFTH, SIXTH, SEVENTH, COUNT
-};
-
-enum class MoveCharacters : char {
-    NONE =
-    #if defined(DEBUG)
-        '&',
-    #else
-        ' ',
-    #endif
-    FIRST_PLAYER = 'X',
-    SECOND_PLAYER = 'O',
-    COUNT
 };
 
 template<short RowsCount, short ColumnsCount>
@@ -110,15 +99,15 @@ public:
     // TODO Player class as second param
     bool MakeMove(Column column, Human* human) {
         auto index = static_cast<short>(column);
-        while (index < this->boardSize_ && this->field_[index] == (char)MoveCharacters::NONE) {
+        while (index < this->boardSize_ && this->field_[index] == ' ') {
             index += static_cast<short>(ColumnsCount);
         }
 
-        this->field_[index - ColumnsCount] = static_cast<char>(human->GetCharacter());
+        this->field_[index - ColumnsCount] = human->GetCharacter();
         return true;
     }
 
 private:
     static constexpr auto boardSize_ = RowsCount * ColumnsCount;
-    std::array<char, Board::boardSize_> field_;
+    std::array<MoveCharacters, Board::boardSize_> field_;
 };

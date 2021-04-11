@@ -1,13 +1,11 @@
 #include <iostream>
-#include <memory>
 #include <string>
 
-#include "Board/Board.hpp"
+#include "Game/Game.hpp"
 
 int main(const int argc, const char* argv[]) {
-    const auto board = std::make_unique<Board<6, 7>>();
 
-    std::clog << *board;
+    std::clog << Game<6, 7>::GetInstance().GetBoard() << std::endl << Game<10, 5>::GetInstance().GetBoard();
 
     return EXIT_SUCCESS;
 }

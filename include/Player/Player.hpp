@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Board/Board.hpp"
+#include "MoveCharacters/MoveCharacters.hpp"
 
 class Human {
 public:
