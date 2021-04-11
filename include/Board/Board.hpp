@@ -5,6 +5,8 @@
 #include <iostream>
 #include <sstream>
 
+#include "Player/Player.hpp"
+
 enum class Row : short {
     FIRST, SECOND, THIRD, FOURTH, FIFTH, SIXTH, COUNT
 };
@@ -31,9 +33,7 @@ public:
     //------------------------------------------------- CTOR SECTION -------------------------------------------------//
 
     Board() {
-        //std::fill(this->field_.begin(), this->field_.end(), MoveCharacters::NONE);
-        auto sym = 'A';
-        std::for_each(this->field_.begin(), this->field_.end(), [&](auto& a) { a = (char )MoveCharacters::NONE; });
+        std::fill(this->field_.begin(), this->field_.end(), MoveCharacters::NONE);
     }
 
     Board(const Board&) = delete;
@@ -42,7 +42,7 @@ public:
     //--------------------------------------------- OPERATOR SECTION -------------------------------------------------//
 
     Board& operator=(const Board&) = delete;
-    Board& operator=(Board&&) noexcept = delete;
+    Board& operator=(Board&&) noexcept = default;
 
     template<class Type>
     friend auto& operator<<(std::basic_ostream<Type>& out, const Board& board) {
@@ -108,13 +108,13 @@ public:
     }
 
     // TODO Player class as second param
-    bool MakeMove(Column column, MoveCharacters move) {
+    bool MakeMove(Column column, Human* human) {
         auto index = static_cast<short>(column);
         while (index < this->boardSize_ && this->field_[index] == (char)MoveCharacters::NONE) {
             index += static_cast<short>(ColumnsCount);
         }
 
-        this->field_[index - ColumnsCount] = (char)move;
+        this->field_[index - ColumnsCount] = static_cast<char>(human->GetCharacter());
         return true;
     }
 
