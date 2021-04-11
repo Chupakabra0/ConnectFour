@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.19)
+cmake_minimum_required(VERSION 3.0)
 project(ConnectFour)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -15,4 +15,4 @@ add_executable(ConnectFour
         include/Board/Board.hpp
         include/Player/Player.hpp
         include/Game/Game.hpp
-        include/MoveCharacters/MoveCharacters.hpp include/Controller/IController.hpp)
+        include/MoveCharacters/MoveCharacters.hpp)

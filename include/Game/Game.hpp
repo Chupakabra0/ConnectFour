@@ -67,19 +67,20 @@ public:
 
         while (true) {
             short turn;
-            std::clog << *this->board_ << std::endl << "Your turn: ";
+            std::cout << *this->board_ << std::endl << "Your turn: ";
             std::cin >> turn;
             --turn;
 
             if (turn < static_cast<short>(Column::FIRST) || turn > static_cast<short>(Column::SEVENTH)) {
                 this->Cls();
-                std::clog << "Please, enter correct number between " << static_cast<short>(Column::FIRST) - 1
+                std::cout << "Please, enter correct number between " << static_cast<short>(Column::FIRST) - 1
                     << " and " << static_cast<short>(Column::SEVENTH) - 1 << std::endl;
                 continue;
             }
 
             this->board_->MakeMove(Column(turn), this->currentPlayer_.get());
             this->SwitchPlayer();
+            this->Cls();
         }
 
         return EXIT_SUCCESS;

@@ -103,7 +103,13 @@ public:
             index += static_cast<short>(ColumnsCount);
         }
 
-        this->field_[index - ColumnsCount] = human->GetCharacter();
+        index -= ColumnsCount;
+
+        if (index < 0) {
+            return false;
+        }
+
+        this->field_[index] = human->GetCharacter();
         return true;
     }
 
