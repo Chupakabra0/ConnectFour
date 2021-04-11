@@ -10,4 +10,9 @@ if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
 endif()
 
 add_executable(ConnectFour
-        src/main.cpp include/Board/Board.hpp src/Player/Player.cpp include/Player/Player.hpp include/Game/Game.hpp include/MoveCharacters/MoveCharacters.hpp)
+        src/main.cpp
+        src/Player/Player.cpp
+        include/Board/Board.hpp
+        include/Player/Player.hpp
+        include/Game/Game.hpp
+        include/MoveCharacters/MoveCharacters.hpp include/Controller/IController.hpp)

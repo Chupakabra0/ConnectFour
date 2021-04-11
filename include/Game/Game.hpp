@@ -32,7 +32,7 @@ public:
     //-------------------------------------------- ACCESSOR SECTION --------------------------------------------------//
 
     [[nodiscard]] const auto& GetBoard() const {
-        return this->board_;
+        return *this->board_;
     }
 
     [[nodiscard]] auto* GetFirstPlayer() const {
@@ -47,11 +47,61 @@ public:
         return index == 1 ? this->GetFirstPlayer() : this->GetSecondPlayer();
     }
 
+    [[nodiscard]] auto* GetCurrentPlayer() const {
+        return this->currentPlayer_.get();
+    }
+
+    //--------------------------------------------- METHOD SECTION ---------------------------------------------------//
+
+    void SwitchPlayer() {
+        if (this->currentPlayer_ == this->players_.first) {
+            this->currentPlayer_ = this->players_.second;
+        }
+        else {
+            this->currentPlayer_ = this->players_.first;
+        }
+    }
+
+    int LaunchGameLoop(const int argc, const char* argv[]) {
+        this->Cls();
+
+        while (true) {
+            short turn;
+            std::clog << *this->board_ << std::endl << "Your turn: ";
+            std::cin >> turn;
+            --turn;
+
+            if (turn < static_cast<short>(Column::FIRST) || turn > static_cast<short>(Column::SEVENTH)) {
+                this->Cls();
+                std::clog << "Please, enter correct number between " << static_cast<short>(Column::FIRST) - 1
+                    << " and " << static_cast<short>(Column::SEVENTH) - 1 << std::endl;
+                continue;
+            }
+
+            this->board_->MakeMove(Column(turn), this->currentPlayer_.get());
+            this->SwitchPlayer();
+        }
+
+        return EXIT_SUCCESS;
+    };
+
 private:
     Game()
         : players_({ std::make_unique<Human>(MoveCharacters::FIRST_PLAYER),
-            std::make_unique<Human>(MoveCharacters::SECOND_PLAYER) }), board_() {}
+            std::make_unique<Human>(MoveCharacters::SECOND_PLAYER) }),
+            currentPlayer_(this->players_.first) {
+        this->board_ = std::make_unique<Board<RowsCount, ColumnsCount>>();
+    }
 
-    Board<RowsCount, ColumnsCount> board_;
-    std::pair<std::unique_ptr<Human>, std::unique_ptr<Human>> players_;
+    void Cls() {
+        #if defined(WIN32)
+            system("cls");
+        #else
+            system("clear");
+        #endif
+    }
+
+    std::unique_ptr<Board<RowsCount, ColumnsCount>> board_;
+    std::pair<std::shared_ptr<Human>, std::shared_ptr<Human>> players_;
+    std::shared_ptr<Human> currentPlayer_;
 };

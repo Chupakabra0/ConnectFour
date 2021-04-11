@@ -99,7 +99,7 @@ public:
     // TODO Player class as second param
     bool MakeMove(Column column, Human* human) {
         auto index = static_cast<short>(column);
-        while (index < this->boardSize_ && this->field_[index] == ' ') {
+        while (index < this->boardSize_ && this->field_[index] == MoveCharacters::NONE) {
             index += static_cast<short>(ColumnsCount);
         }
 
