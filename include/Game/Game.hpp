@@ -99,10 +99,14 @@ public:
                     else {
                         std::clog << "Second player has won!" << std::endl;
                     }
+                    std::clog << *this->board_ << std::endl;
+
                     return EXIT_SUCCESS;
                 }
                 case WinnerCode::TIE: {
                     std::clog << "It's a tie" << std::endl;
+                    std::clog << *this->board_ << std::endl;
+
                     return EXIT_SUCCESS;
                 }
             }
@@ -119,7 +123,7 @@ private:
 
     WinnerCode GetWinner() {
         #pragma region hardcoded winning combos
-        const std::forward_list<std::array<std::pair<Row, Column>, 4>> WINNING_COMBOS = {
+        const std::vector<std::array<std::pair<Row, Column>, 4>> WINNING_COMBOS = {
             std::array<std::pair<Row, Column>, 4> {
                     std::pair(Row::FIRST, Column::FIRST),
                     std::pair(Row::SECOND, Column::FIRST),
@@ -496,13 +500,13 @@ private:
                     std::pair(Row::FIFTH, Column::SECOND),
                     std::pair(Row::FOURTH, Column::THIRD),
                     std::pair(Row::THIRD, Column::FOURTH),
-                    std::pair(Row::SECOND, Column::THIRD)
+                    std::pair(Row::SECOND, Column::FIFTH)
             },
             std::array<std::pair<Row, Column>, 4> {
                     std::pair(Row::FOURTH, Column::THIRD),
                     std::pair(Row::THIRD, Column::FOURTH),
-                    std::pair(Row::SECOND, Column::THIRD),
-                    std::pair(Row::FIRST, Column::SECOND)
+                    std::pair(Row::SECOND, Column::FIFTH),
+                    std::pair(Row::FIRST, Column::SIXTH)
             },
             std::array<std::pair<Row, Column>, 4> {
                     std::pair(Row::SIXTH, Column::SECOND),
@@ -514,13 +518,13 @@ private:
                     std::pair(Row::FIFTH, Column::THIRD),
                     std::pair(Row::FOURTH, Column::FOURTH),
                     std::pair(Row::THIRD, Column::FIFTH),
-                    std::pair(Row::SECOND, Column::FOURTH)
+                    std::pair(Row::SECOND, Column::SIXTH)
             },
             std::array<std::pair<Row, Column>, 4> {
                     std::pair(Row::FOURTH, Column::FOURTH),
                     std::pair(Row::THIRD, Column::FIFTH),
-                    std::pair(Row::SECOND, Column::FOURTH),
-                    std::pair(Row::FIRST, Column::THIRD)
+                    std::pair(Row::SECOND, Column::SIXTH),
+                    std::pair(Row::FIRST, Column::SEVENTH)
             },
             std::array<std::pair<Row, Column>, 4> {
                     std::pair(Row::SIXTH, Column::THIRD),
@@ -537,20 +541,23 @@ private:
         };
         #pragma endregion
 
+         auto i = 0;
         for (const auto& combo : WINNING_COMBOS) {
-            const auto temp = std::array{
+            const auto temp = std::array {
                 this->board_->GetCell(combo[0].first, combo[0].second) != MoveCharacters::NONE,
                 this->board_->GetCell(combo[0].first, combo[0].second) == this->board_->GetCell(combo[1].first, combo[1].second),
                 this->board_->GetCell(combo[1].first, combo[1].second) == this->board_->GetCell(combo[2].first, combo[2].second),
                 this->board_->GetCell(combo[2].first, combo[2].second) == this->board_->GetCell(combo[3].first, combo[3].second)
             };
 
+            ++i;
             //std::clog << static_cast<char>(this->board_->GetCell(combo[0].first, combo[0].second)) << " "
         			 // << static_cast<char>(this->board_->GetCell(combo[1].first, combo[1].second)) << " "
         		  //    << static_cast<char>(this->board_->GetCell(combo[2].first, combo[2].second)) << " "
         		  //    << static_cast<char>(this->board_->GetCell(combo[3].first, combo[3].second)) << std::endl;
         	
             if (std::accumulate(temp.begin(), temp.end(), true, std::bit_and()) == true) {
+                std::clog << i << std::endl;
                 return WinnerCode::WIN;
             }
         }

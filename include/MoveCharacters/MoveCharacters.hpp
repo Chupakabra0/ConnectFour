@@ -1,12 +1,7 @@
 #pragma once
 
 enum class MoveCharacters : char {
-    NONE =
-    #if defined(DEBUG)
-        '&',
-    #else
-        ' ',
-    #endif
+    NONE = ' ',
     FIRST_PLAYER = 'X',
-    SECOND_PLAYER = 'O',
+    SECOND_PLAYER = 'O'
 };
