@@ -103,7 +103,7 @@ public:
             index += static_cast<short>(ColumnsCount);
         }
 
-        index -= ColumnsCount;
+        index -= static_cast<short>(ColumnsCount);
 
         if (index < 0) {
             return false;
