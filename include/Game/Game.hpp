@@ -82,8 +82,8 @@ public:
             this->Cls();
 
             if (turn < static_cast<short>(Column::FIRST) || turn > static_cast<short>(Column::SEVENTH)) {
-                std::clog << "Please, enter correct number between " << static_cast<short>(Column::FIRST) - 1
-                    << " and " << static_cast<short>(Column::SEVENTH) - 1 << std::endl;
+                std::clog << "Please, enter correct number between " << static_cast<short>(Column::FIRST) + 1
+                    << " and " << static_cast<short>(Column::SEVENTH) + 1 << std::endl;
                 continue;
             }
 
@@ -541,7 +541,7 @@ private:
         };
         #pragma endregion
 
-         auto i = 0;
+//         auto i = 0;
         for (const auto& combo : WINNING_COMBOS) {
             const auto temp = std::array {
                 this->board_->GetCell(combo[0].first, combo[0].second) != MoveCharacters::NONE,
@@ -550,14 +550,14 @@ private:
                 this->board_->GetCell(combo[2].first, combo[2].second) == this->board_->GetCell(combo[3].first, combo[3].second)
             };
 
-            ++i;
+//            ++i;
             //std::clog << static_cast<char>(this->board_->GetCell(combo[0].first, combo[0].second)) << " "
         			 // << static_cast<char>(this->board_->GetCell(combo[1].first, combo[1].second)) << " "
         		  //    << static_cast<char>(this->board_->GetCell(combo[2].first, combo[2].second)) << " "
         		  //    << static_cast<char>(this->board_->GetCell(combo[3].first, combo[3].second)) << std::endl;
         	
-            if (std::accumulate(temp.begin(), temp.end(), true, std::bit_and()) == true) {
-                std::clog << i << std::endl;
+            if (std::accumulate(temp.begin(), temp.end(), true, std::bit_and<>()) == true) {
+//                std::clog << i << std::endl;
                 return WinnerCode::WIN;
             }
         }
