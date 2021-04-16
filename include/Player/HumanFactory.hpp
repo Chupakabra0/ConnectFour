@@ -21,11 +21,11 @@ public:
 
     //----------------------------------------------- DTOR SECTION ---------------------------------------------------//
 
-    ~HumanFactory() noexcept = default;
+    ~HumanFactory() noexcept override = default;
 
     //--------------------------------------------- METHOD SECTION ---------------------------------------------------//
 
-    virtual Human* CreatePlayer() {
+    Human* CreatePlayer() override {
         return new Human(this->moveCharacter_);
     }
 };

@@ -5,7 +5,6 @@
 #include <iostream>
 #include <sstream>
 
-#include "Player/Player.hpp"
 #include "MoveCharacters/MoveCharacters.hpp"
 
 enum class Row : short {
@@ -21,7 +20,7 @@ public:
     //------------------------------------------------- CTOR SECTION -------------------------------------------------//
 
     Board() {
-        std::fill(this->field_.begin(), this->field_.end(), MoveCharacters::NONE);
+        this->field_.assign(this->rowsCount_ * this->columnsCount_, MoveCharacters::NONE);
     }
 
     Board(const Board&) = delete;
@@ -96,7 +95,7 @@ public:
     }
 
     // TODO Player class as second param
-    bool MakeMove(Column column, Human* human) {
+    bool MakeMove(Column column, MoveCharacters move) {
         auto index = static_cast<int>(column);
         while (index < this->GetSize() && this->field_[index] == MoveCharacters::NONE) {
             index += this->columnsCount_;
@@ -108,11 +107,11 @@ public:
             return false;
         }
 
-        this->field_[index] = human->GetCharacter();
+        this->field_[index] = move;
         return true;
     }
 
 private:
-    short rowsCount_, columnsCount_;
+    short rowsCount_ = 6, columnsCount_ = 7;
     std::vector<MoveCharacters> field_;
 };

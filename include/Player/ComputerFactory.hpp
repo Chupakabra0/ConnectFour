@@ -21,11 +21,11 @@ public:
 
     //----------------------------------------------- DTOR SECTION ---------------------------------------------------//
 
-    ~ComputerFactory() noexcept = default;
+    ~ComputerFactory() noexcept override = default;
 
     //--------------------------------------------- METHOD SECTION ---------------------------------------------------//
 
-    virtual Computer* CreatePlayer() {
+    Computer* CreatePlayer() override {
         return new Computer(this->moveCharacter_);
     }
 };

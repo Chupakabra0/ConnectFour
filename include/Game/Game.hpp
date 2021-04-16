@@ -1,11 +1,15 @@
 #pragma once
 
+#include <array>
 #include <forward_list>
 #include <functional>
 #include <memory>
 #include <numeric>
 
 #include "Board/Board.hpp"
+#include "Player/Player.hpp"
+#include "Player/Human.hpp"
+#include "Player/Computer.hpp"
 
 class Game {
     enum class WinnerCode : short {
@@ -16,6 +20,7 @@ class Game {
 public:
     //------------------------------------------------- CTOR SECTION -------------------------------------------------//
 
+    Game() = delete;
     Game(const Game&) = delete;
     Game(Game&&) noexcept = default;
 
@@ -31,8 +36,8 @@ public:
 
     //--------------------------------------------- STATIC SECTION ---------------------------------------------------//
 
-    static auto& GetInstance() {
-        static Game instance;
+    static auto& GetInstance(Player* first, Player* second) {
+        static Game instance(first, second);
         return instance;
     }
 
@@ -69,24 +74,15 @@ public:
         }
     }
 
-    int LaunchGameLoop(const int argc, const char* argv[]) {
+    int LaunchGameLoop([[maybe_unused]] const int argc, [[maybe_unused]] const char* argv[]) {
         this->Cls();
 
         while (true) {
-            short turn;
-            std::clog << *this->board_ << std::endl << "Your turn: ";
-            std::cin >> turn;
-            --turn;
-
+            std::clog << *this->board_ << std::endl;
+            const auto turn = this->currentPlayer_->MakeMove(this->board_.get());
             this->Cls();
 
-            if (turn < static_cast<short>(Column::FIRST) || turn > static_cast<short>(Column::SEVENTH)) {
-                std::clog << "Please, enter correct number between " << static_cast<short>(Column::FIRST) + 1
-                    << " and " << static_cast<short>(Column::SEVENTH) + 1 << std::endl;
-                continue;
-            }
-
-            if (!this->board_->MakeMove(Column(turn), this->currentPlayer_.get())) {
+            if (!this->board_->MakeMove(Column(turn), this->currentPlayer_->GetCharacter())) {
                 std::clog << "This column was filled!" << std::endl;
             }
             
@@ -115,9 +111,8 @@ public:
     };
 
 private:
-    Game()
-        : players_({ std::make_unique<Human>(MoveCharacters::FIRST_PLAYER),
-            std::make_unique<Human>(MoveCharacters::SECOND_PLAYER) }),
+    explicit Game(Player* first, Player* second)
+        : players_({ std::unique_ptr<Player>(first), std::unique_ptr<Player>(second) }),
             currentPlayer_(this->players_.first), board_(std::make_unique<Board>()) {}
 
     WinnerCode GetWinner() {
@@ -540,7 +535,7 @@ private:
         };
         #pragma endregion
 
-//         auto i = 0;
+
         for (const auto& combo : WINNING_COMBOS) {
             const auto temp = std::array {
                 this->board_->GetCell(combo[0].first, combo[0].second) != MoveCharacters::NONE,
@@ -549,14 +544,7 @@ private:
                 this->board_->GetCell(combo[2].first, combo[2].second) == this->board_->GetCell(combo[3].first, combo[3].second)
             };
 
-//            ++i;
-            //std::clog << static_cast<char>(this->board_->GetCell(combo[0].first, combo[0].second)) << " "
-        			 // << static_cast<char>(this->board_->GetCell(combo[1].first, combo[1].second)) << " "
-        		  //    << static_cast<char>(this->board_->GetCell(combo[2].first, combo[2].second)) << " "
-        		  //    << static_cast<char>(this->board_->GetCell(combo[3].first, combo[3].second)) << std::endl;
-        	
-            if (std::accumulate(temp.begin(), temp.end(), true, std::bit_and<>()) == true) {
-//                std::clog << i << std::endl;
+            if (std::accumulate(temp.begin(), temp.end(), true, std::bit_and<>())) {
                 return WinnerCode::WIN;
             }
         }
@@ -580,6 +568,6 @@ private:
     //
 
     std::unique_ptr<Board> board_;
-    std::pair<std::shared_ptr<Human>, std::shared_ptr<Human>> players_;
-    std::shared_ptr<Human> currentPlayer_;
+    std::pair<std::shared_ptr<Player>, std::shared_ptr<Player>> players_;
+    std::shared_ptr<Player> currentPlayer_;
 };

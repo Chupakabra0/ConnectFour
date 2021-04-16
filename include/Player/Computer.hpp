@@ -18,8 +18,11 @@ public:
 
     //----------------------------------------------- DTOR SECTION ---------------------------------------------------//
 
-    ~Computer() noexcept = default;
+    ~Computer() noexcept override = default;
 
     //--------------------------------------------- METHOD SECTION ---------------------------------------------------//
 
+    Column MakeMove(Board* board) override {
+        return Column::THIRD;
+    }
 };

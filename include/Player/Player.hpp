@@ -1,25 +1,25 @@
 #pragma once
 
 #include "MoveCharacters/MoveCharacters.hpp"
+#include "Board/Board.hpp"
 
-class Human {
+class Player {
 public:
     //------------------------------------------------- CTOR SECTION -------------------------------------------------//
 
-    Human() = delete;
-    Human(const Human&) = delete;
-    Human(Human&&) noexcept = default;
-
-    explicit Human(MoveCharacters moveCharacter) : moveCharacter_(moveCharacter) {}
+    Player() = delete;
+    Player(const Player&) = delete;
+    Player(Player&&) noexcept = default;
+    explicit Player(MoveCharacters moveCharacter) : moveCharacter_(moveCharacter) {}
 
     //--------------------------------------------- OPERATOR SECTION -------------------------------------------------//
 
-    Human& operator=(const Human&) = delete;
-    Human& operator=(Human&&) noexcept = default;
+    Player& operator=(const Player&) = delete;
+    Player& operator=(Player&&) noexcept = default;
 
     //----------------------------------------------- DTOR SECTION ---------------------------------------------------//
 
-    ~Human() noexcept = default;
+    virtual ~Player() noexcept = default;
 
     //-------------------------------------------- ACCESSOR SECTION --------------------------------------------------//
 
@@ -29,6 +29,8 @@ public:
 
     //--------------------------------------------- METHOD SECTION ---------------------------------------------------//
 
-private:
+    virtual Column MakeMove(Board* board) = 0;
+
+protected:
     MoveCharacters moveCharacter_;
 };
