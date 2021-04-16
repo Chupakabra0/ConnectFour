@@ -1,6 +1,6 @@
 #pragma once
 
-#include <array>
+#include <vector>
 #include <algorithm>
 #include <iostream>
 #include <sstream>
@@ -16,7 +16,6 @@ enum class Column : short {
     FIRST, SECOND, THIRD, FOURTH, FIFTH, SIXTH, SEVENTH, COUNT
 };
 
-template<short RowsCount, short ColumnsCount>
 class Board {
 public:
     //------------------------------------------------- CTOR SECTION -------------------------------------------------//
@@ -41,19 +40,19 @@ public:
 
         // TODO some util-func
         std::string delimiter;
-        for (auto i = 0u; i < 2 * ColumnsCount + ColumnsCount / 7; ++i) {
+        for (auto i = 0u; i < 2 * board.columnsCount_ + board.columnsCount_ / 7; ++i) {
             delimiter += "--";
         }
         //
 
-        for (auto i = 0; i < RowsCount; ++i) {
+        for (auto i = 0; i < board.rowsCount_; ++i) {
             out << "| " << static_cast<char>(board.GetCell(Row(i), Column::FIRST)) << " | ";
-            for (auto j = 1; j < ColumnsCount; ++j) {
+            for (auto j = 1; j < board.columnsCount_; ++j) {
                 out << static_cast<char>(board.GetCell(Row(i), Column(j))) << " | ";
             }
 
             out << std::endl << delimiter;
-            if (i != RowsCount - 1) {
+            if (i != board.rowsCount_ - 1) {
                 out << std::endl;
             }
         }
@@ -71,39 +70,39 @@ public:
         return this->field_;
     }
 
-    [[nodiscard]] constexpr auto GetSize() const {
-        return this->boardSize_;
+    [[nodiscard]] auto GetSize() const {
+        return this->field_.size();
     }
 
-    [[nodiscard]] constexpr auto GetRows() const {
-        return RowsCount;
+    [[nodiscard]] auto GetRows() const {
+        return this->rowsCount_;
     }
 
-    [[nodiscard]] constexpr auto GetColumns() const {
-        return ColumnsCount;
+    [[nodiscard]] auto GetColumns() const {
+        return this->columnsCount_;
     }
 
     //--------------------------------------------- METHOD SECTION ---------------------------------------------------//
 
-    [[nodiscard]] auto GetCell(const Row row, const Column column) const {
-        if (static_cast<short>(row) >= RowsCount) {
+    [[nodiscard]] MoveCharacters GetCell(const Row row, const Column column) const {
+        if (static_cast<short>(row) >= this->rowsCount_) {
             throw std::out_of_range("Row index out of boundaries.");
         }
-        else if (static_cast<short>(column) >= ColumnsCount) {
+        else if (static_cast<short>(column) >= this->columnsCount_) {
             throw std::out_of_range("Column index out of boundaries.");
         }
 
-        return this->field_[static_cast<size_t>(row) * ColumnsCount + static_cast<size_t>(column)];
+        return this->field_[static_cast<size_t>(row) * this->columnsCount_ + static_cast<size_t>(column)];
     }
 
     // TODO Player class as second param
     bool MakeMove(Column column, Human* human) {
-        auto index = static_cast<short>(column);
-        while (index < this->boardSize_ && this->field_[index] == MoveCharacters::NONE) {
-            index += static_cast<short>(ColumnsCount);
+        auto index = static_cast<int>(column);
+        while (index < this->GetSize() && this->field_[index] == MoveCharacters::NONE) {
+            index += this->columnsCount_;
         }
 
-        index -= static_cast<short>(ColumnsCount);
+        index -= this->columnsCount_;
 
         if (index < 0) {
             return false;
@@ -114,6 +113,6 @@ public:
     }
 
 private:
-    static constexpr auto boardSize_ = RowsCount * ColumnsCount;
-    std::array<MoveCharacters, Board::boardSize_> field_;
+    short rowsCount_, columnsCount_;
+    std::vector<MoveCharacters> field_;
 };

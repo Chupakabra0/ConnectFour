@@ -7,7 +7,6 @@
 
 #include "Board/Board.hpp"
 
-template<short RowsCount, short ColumnsCount>
 class Game {
     enum class WinnerCode : short {
         NONE,
@@ -119,7 +118,7 @@ private:
     Game()
         : players_({ std::make_unique<Human>(MoveCharacters::FIRST_PLAYER),
             std::make_unique<Human>(MoveCharacters::SECOND_PLAYER) }),
-            currentPlayer_(this->players_.first), board_(std::make_unique<Board<RowsCount, ColumnsCount>>()) {}
+            currentPlayer_(this->players_.first), board_(std::make_unique<Board>()) {}
 
     WinnerCode GetWinner() {
         #pragma region hardcoded winning combos
@@ -580,7 +579,7 @@ private:
     }
     //
 
-    std::unique_ptr<Board<RowsCount, ColumnsCount>> board_;
+    std::unique_ptr<Board> board_;
     std::pair<std::shared_ptr<Human>, std::shared_ptr<Human>> players_;
     std::shared_ptr<Human> currentPlayer_;
 };
