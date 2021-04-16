@@ -15,4 +15,6 @@ add_executable(ConnectFour
         include/Board/Board.hpp
         include/Player/Player.hpp
         include/Game/Game.hpp
-        include/MoveCharacters/MoveCharacters.hpp "include/Player/Human.hpp" "include/Player/Computer.hpp"  )
+        include/MoveCharacters/MoveCharacters.hpp
+        include/Player/Human.hpp
+        include/Player/Computer.hpp)

@@ -79,6 +79,7 @@ public:
 
         while (true) {
             std::clog << *this->board_ << std::endl;
+            std::clog << static_cast<char>(this->currentPlayer_->GetCharacter()) << " Make move: ";
             const auto turn = this->currentPlayer_->MakeMove(this->board_.get());
             this->Cls();
 
@@ -88,12 +89,7 @@ public:
             
             switch (this->GetWinner()) {
                 case WinnerCode::WIN: {
-                    if (this->currentPlayer_ == this->players_.first) {
-                        std::clog << "First player has won!" << std::endl;
-                    }
-                    else {
-                        std::clog << "Second player has won!" << std::endl;
-                    }
+                    std::clog << static_cast<char>(this->currentPlayer_->GetCharacter()) << " player has won!" << std::endl;
                     std::clog << *this->board_ << std::endl;
 
                     return EXIT_SUCCESS;
