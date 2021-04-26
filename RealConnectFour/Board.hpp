@@ -1,118 +1,95 @@
 #pragma once
-
-#include <array>
-#include <forward_list>
+#include <algorithm>
 #include <functional>
-#include <memory>
+#include <iostream>
 #include <numeric>
+#include <stdexcept>
+#include <vector>
 
-#include "Board/Board.hpp"
-#include "Player/Player.hpp"
-#include "Player/Human.hpp"
-#include "Player/Computer.hpp"
+#include "Enums.hpp"
 
-class Game {
-    enum class WinnerCode : short {
-        NONE,
-        TIE,
-        WIN
-    };
+class Board {
 public:
     //------------------------------------------------- CTOR SECTION -------------------------------------------------//
 
-    Game() = delete;
-    Game(const Game&) = delete;
-    Game(Game&&) noexcept = default;
+    explicit Board() {
+        this->field_.assign(this->rowsCount_ * this->columnsCount_, ' ');
+    }
+
+    Board(const Board&) = default;
+    Board(Board&&) noexcept = default;
 
     //--------------------------------------------- OPERATOR SECTION -------------------------------------------------//
 
+    Board& operator=(const Board&) = default;
+    Board& operator=(Board&&) noexcept = default;
 
-    Game& operator=(const Game&) = delete;
-    Game& operator=(Game&&) noexcept = default;
+    template<class Type>
+    friend auto& operator<<(std::basic_ostream<Type>& out, const Board& board) {
+        if (board.field_.empty()) {
+            return out;
+        }
+
+        // TODO some util-func
+        std::string delimiter;
+        for (auto i = 0u; i < 2 * board.columnsCount_ + board.columnsCount_ / 7; ++i) {
+            delimiter += "--";
+        }
+        //
+
+        for (auto i = 0; i < board.rowsCount_; ++i) {
+            out << "| " << board.GetCell(i, 0) << " | ";
+            for (auto j = 1; j < board.columnsCount_; ++j) {
+                out << board.GetCell(i, j) << " | ";
+            }
+
+            out << std::endl << delimiter;
+            if (i != board.rowsCount_ - 1) {
+                out << std::endl;
+            }
+        }
+
+        return out;
+    }
 
     //----------------------------------------------- DTOR SECTION ---------------------------------------------------//
 
-    ~Game() noexcept = default;
-
-    //--------------------------------------------- STATIC SECTION ---------------------------------------------------//
-
-    static auto& GetInstance(Player* first, Player* second) {
-        static Game instance(first, second);
-        return instance;
-    }
+    ~Board() noexcept = default;
 
     //-------------------------------------------- ACCESSOR SECTION --------------------------------------------------//
 
-    [[nodiscard]] const auto& GetBoard() const {
-        return *this->board_;
+    [[nodiscard]] const auto& GetField() const {
+        return this->field_;
     }
 
-    [[nodiscard]] auto* GetFirstPlayer() const {
-        return this->players_.first.get();
+    [[nodiscard]] auto GetSize() const {
+        return this->field_.size();
     }
 
-    [[nodiscard]] auto* GetSecondPlayer() const {
-        return this->players_.second.get();
+    [[nodiscard]] auto GetRows() const {
+        return this->rowsCount_;
     }
 
-    [[nodiscard]] auto* GetPlayerByIndex(const short index) const {
-        return index == 1 ? this->GetFirstPlayer() : this->GetSecondPlayer();
-    }
-
-    [[nodiscard]] auto* GetCurrentPlayer() const {
-        return this->currentPlayer_.get();
+    [[nodiscard]] auto GetColumns() const {
+        return this->columnsCount_;
     }
 
     //--------------------------------------------- METHOD SECTION ---------------------------------------------------//
 
-    void SwitchPlayer() {
-        if (this->currentPlayer_ == this->players_.first) {
-            this->currentPlayer_ = this->players_.second;
+    [[nodiscard]] char GetCell(const short row, const short column) const {
+        if (static_cast<short>(row) >= this->rowsCount_) {
+            throw std::out_of_range("Row index out of boundaries.");
         }
-        else {
-            this->currentPlayer_ = this->players_.first;
+        if (static_cast<short>(column) >= this->columnsCount_) {
+            throw std::out_of_range("Column index out of boundaries.");
         }
+
+        return this->field_[static_cast<size_t>(row) * this->columnsCount_ + static_cast<size_t>(column)];
     }
 
-    int LaunchGameLoop([[maybe_unused]] const int argc, [[maybe_unused]] const char* argv[]) {
-        this->Cls();
-
-        while (true) {
-            std::clog << *this->board_ << std::endl;
-            std::clog << static_cast<char>(this->currentPlayer_->GetCharacter()) << " Make move: ";
-            const auto turn = this->currentPlayer_->MakeMove(this->board_.get());
-            this->Cls();
-
-            if (!this->board_->MakeMove(Column(turn), this->currentPlayer_->GetCharacter())) {
-                std::clog << "This column was filled!" << std::endl;
-            }
-            
-            switch (this->GetWinner()) {
-                case WinnerCode::WIN: {
-                    std::clog << static_cast<char>(this->currentPlayer_->GetCharacter()) << " player has won!" << std::endl;
-                    std::clog << *this->board_ << std::endl;
-
-                    return EXIT_SUCCESS;
-                }
-                case WinnerCode::TIE: {
-                    std::clog << "It's a tie" << std::endl;
-                    std::clog << *this->board_ << std::endl;
-
-                    return EXIT_SUCCESS;
-                }
-            }
-
-            this->SwitchPlayer();
-        }
-    };
-
-private:
-    explicit Game(Player* first, Player* second)
-        : players_({ std::unique_ptr<Player>(first), std::unique_ptr<Player>(second) }),
-            currentPlayer_(this->players_.first), board_(std::make_unique<Board>()) {}
 
     WinnerCode GetWinner() {
-        #pragma region hardcoded winning combos
+#pragma region hardcoded winning combos
         const std::vector<std::array<std::pair<Row, Column>, 4>> WINNING_COMBOS = {
             std::array<std::pair<Row, Column>, 4> {
                     std::pair(Row::FIRST, Column::FIRST),
@@ -127,10 +104,10 @@ private:
                     std::pair(Row::FIFTH, Column::FIRST)
             },
             std::array<std::pair<Row, Column>, 4> {
-	                std::pair(Row::THIRD, Column::FIRST),
-	                std::pair(Row::FOURTH, Column::FIRST),
-	                std::pair(Row::FIFTH, Column::FIRST),
-	                std::pair(Row::SIXTH, Column::FIRST)
+                    std::pair(Row::THIRD, Column::FIRST),
+                    std::pair(Row::FOURTH, Column::FIRST),
+                    std::pair(Row::FIFTH, Column::FIRST),
+                    std::pair(Row::SIXTH, Column::FIRST)
             },
             std::array<std::pair<Row, Column>, 4> {
                     std::pair(Row::FIRST, Column::SECOND),
@@ -529,15 +506,14 @@ private:
                     std::pair(Row::SECOND, Column::SEVENTH)
             },
         };
-        #pragma endregion
-
+#pragma endregion
 
         for (const auto& combo : WINNING_COMBOS) {
-            const auto temp = std::array {
-                this->board_->GetCell(combo[0].first, combo[0].second) != MoveCharacters::NONE,
-                this->board_->GetCell(combo[0].first, combo[0].second) == this->board_->GetCell(combo[1].first, combo[1].second),
-                this->board_->GetCell(combo[1].first, combo[1].second) == this->board_->GetCell(combo[2].first, combo[2].second),
-                this->board_->GetCell(combo[2].first, combo[2].second) == this->board_->GetCell(combo[3].first, combo[3].second)
+            const auto temp = std::array{
+                this->GetCell(static_cast<short>(combo[0].first), static_cast<short>(combo[0].second)) != ' ',
+                this->GetCell(static_cast<short>(combo[0].first), static_cast<short>(combo[0].second)) == this->GetCell(static_cast<short>(combo[1].first), static_cast<short>(combo[1].second)),
+                this->GetCell(static_cast<short>(combo[1].first), static_cast<short>(combo[1].second)) == this->GetCell(static_cast<short>(combo[2].first), static_cast<short>(combo[2].second)),
+                this->GetCell(static_cast<short>(combo[2].first), static_cast<short>(combo[2].second)) == this->GetCell(static_cast<short>(combo[3].first), static_cast<short>(combo[3].second))
             };
 
             if (std::accumulate(temp.begin(), temp.end(), true, std::bit_and<>())) {
@@ -545,25 +521,39 @@ private:
             }
         }
 
-        if (std::find(this->board_->GetField().cbegin(), this->board_->GetField().cend(), MoveCharacters::NONE)
-                != this->board_->GetField().cend()) {
-            return WinnerCode::NONE;
+        if (this->IsTie()) {
+            return WinnerCode::TIE;
         }
 
-        return WinnerCode::TIE;
+    	return WinnerCode::NONE;
     }
 
-    // TODO REMOVE IT FROM THIS CLASS
-    void Cls() {
-        #if defined(WIN32)
-            system("cls");
-        #else
-            system("clear");
-        #endif
-    }
-    //
+    // TODO Player class as second param
+    bool MakeMove(short column, char moveSymbol) {
+        auto index = static_cast<int>(column);
+        while (index < this->GetSize() && this->field_[index] == ' ') {
+            index += this->columnsCount_;
+        }
 
-    std::unique_ptr<Board> board_;
-    std::pair<std::shared_ptr<Player>, std::shared_ptr<Player>> players_;
-    std::shared_ptr<Player> currentPlayer_;
+        index -= this->columnsCount_;
+
+        if (index < 0) {
+            return false;
+        }
+
+        this->field_[index] = moveSymbol;
+        return true;
+    }
+
+    [[nodiscard]] bool IsTie() const {
+        return this->GetNumberOfMoves() == this->field_.size();
+    }
+
+	[[nodiscard]] unsigned GetNumberOfMoves() const {
+        return std::ranges::count_if(this->field_, [](auto el) { return el != ' '; });
+    }
+
+private:
+    short rowsCount_ = 6, columnsCount_ = 7;
+    std::vector<char> field_;
 };
