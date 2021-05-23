@@ -61,6 +61,12 @@ private:
 	std::map<Key, ScoreType> table_;
 
 	void Insert(const std::pair<Key, ScoreType>& pair) {
+		//auto element = this->table_.find(pair.first);
+
+		//if (element != this->table_.cend() && element->second.depth >= pair.second.depth) {
+		//	return;
+		//}
+
 		this->table_.insert(pair);
 	}
 };

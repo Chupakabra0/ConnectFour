@@ -1,13 +1,14 @@
 #pragma once
 
 #include <memory>
-#include <sstream>
-#include <fstream>
 #include <thread>
 
 #include "Board.hpp"
 #include "Player.hpp"
 #include "ISolver.hpp"
+#include "Utils.hpp"
+
+#include "include/color.hpp"
 
 class Game {
 public:
@@ -17,10 +18,10 @@ public:
     Game(const Game&) = delete;
     Game(Game&&) noexcept = default;
 	
-    explicit Game(const Player& first, const Player& second, ISolver* solver)
+    explicit Game(const Player& first, const Player& second, ISolver* solver, bool isFirstPlayerFirst, bool isHotseat)
         : board_(std::make_unique<Board>()), solver_(solver),
 		  firstPlayer_(std::make_shared<Player>(first)), secondPlayer_(std::make_shared<Player>(second)),
-          currentPlayer_(firstPlayer_) {}
+          currentPlayer_(isFirstPlayerFirst ? firstPlayer_ : secondPlayer_), isHotseat_(isHotseat) {}
 
     //--------------------------------------------- OPERATOR SECTION -------------------------------------------------//
 
@@ -64,54 +65,45 @@ public:
         }
     }
 
-    int LaunchGameLoop([[maybe_unused]] const int argc, [[maybe_unused]] const char* argv[]) {
+    int LaunchGameLoop(bool isTime) {
 
-        std::chrono::seconds time(0);
     	
-    	this->Clear();
-
-    	std::clog << "Go first: ";
-		std::string temp;
-        std::cin >> temp;
-        std::ranges::transform(temp.begin(), temp.end(), temp.begin(), tolower);
-    	
-    	if (temp == "y" || temp == "yes" || temp == "1" || temp == "+") {
-            this->currentPlayer_ = this->firstPlayer_;
-    	}
-    	else {
-            this->currentPlayer_ = this->secondPlayer_;
-        }
-
-    	this->Clear();
+        [[maybe_unused]] std::chrono::milliseconds time(0);
+        utils::ConsoleClear();
     	
         while (true) {
-            if (this->currentPlayer_ == this->firstPlayer_) {
+            if (this->currentPlayer_ == this->firstPlayer_ || this->isHotseat_) {
                 this->board_->ColorPrint(std::clog,
                     { this->firstPlayer_->GetCharacter(), this->secondPlayer_->GetCharacter() });
-                std::clog << "Unique key: " << dye::bright_white(this->board_->ToKey()) << std::endl;
-            	
+                //std::clog << "Unique key: " << dye::bright_white(this->board_->ToKey()) << std::endl;
+                std::clog << "Make a move. Enter the value " << 1 << "-" << this->board_->GetColumnsCount() << std::endl;
+
                 if (!this->board_->GetHistory().empty()) {
                     std::clog << "Move was made in " << dye::green(this->board_->GetLastMove() + 1) << " column" << std::endl;
-                    std::clog << "Time: " << dye::light_aqua(time) << std::endl;
+                    if (isTime) {
+                        std::clog << "Time: " << dye::light_aqua(time) << std::endl;
+                    }
                 }
                	std::clog << Board::ColorPrintCell(this->currentPlayer_->GetCharacter(),
                     {this->firstPlayer_->GetCharacter(), this->secondPlayer_->GetCharacter()}) << " Make move: ";
                 std::clog << std::flush;
-            	
-        		short move;
-                std::cin >> move;
-                --move;
 
-                this->Clear();
+                std::string moveStr;
+                std::cin >> moveStr;
+                const auto move = utils::StrToInt(moveStr) - 1;
+
+                utils::ConsoleClear();
         	
         		if (move < 0 || move >= this->board_->GetColumnsCount()) {
-                    std::clog << "This column doesn't exist!" << std::endl;
+                    std::clog << dye::red("This column doesn't exist!") << std::endl;
                     continue;
         		}
                 if (!this->currentPlayer_->MakeMove(this->board_.get(), move)) {
-                    std::clog << "This column was filled!" << std::endl;
+                    std::clog << dye::red("This column was filled!") << std::endl;
                     continue;
                 }
+
+                buffer_ += moveStr + ' ';
             }
             else {
                 std::clog << dye::yellow("Computer is thinking a lot...");
@@ -123,42 +115,32 @@ public:
             	
                 const auto end = std::chrono::steady_clock::now();
 
-                time = std::chrono::duration_cast<std::chrono::seconds>(end - begin);
+                time = std::chrono::duration_cast<decltype(time)>(end - begin);
 
-                this->Clear();
+                utils::ConsoleClear();
             }
 
             switch (this->board_->GetWinnerCharacter()) {
 				case 'X': case 'O': {
 	                std::clog << Board::ColorPrintCell(this->currentPlayer_->GetCharacter(),
-                        { this->firstPlayer_->GetCharacter(), this->secondPlayer_->GetCharacter() }) << " player has won!" << std::endl;
+                        { this->firstPlayer_->GetCharacter(), this->secondPlayer_->GetCharacter() }) << dye::green(" player has won!") << std::endl;
                     this->board_->ColorPrint(std::clog,
                         { this->firstPlayer_->GetCharacter(), this->secondPlayer_->GetCharacter() });
+					
+                    std::clog << "Your moves: " << this->buffer_ << std::endl;
 
-                    //for (auto i = 0u; i < this->board_->GetHistory().size(); ++i) {
-                    //    i % 2u == 0u ?
-                    //        std::clog << dye::red(this->board_->GetHistory()[i]) :
-                    //        std::clog << dye::blue(this->board_->GetHistory()[i]);
-                    //}
-                    //std::clog << std::endl;
-					
-                    this->Pause();
-					
+                    utils::ConsolePause();
+
 	                return EXIT_SUCCESS;
 	            }
                 case ' ': {
 	                std::clog << "It's a tie" << std::endl;
                     this->board_->ColorPrint(std::clog,
                         { this->firstPlayer_->GetCharacter(), this->secondPlayer_->GetCharacter() });
-
-                    //for (auto i = 0u; i < this->board_->GetHistory().size(); ++i) {
-                    //    i % 2u == 0u ?
-                    //        std::clog << dye::red(this->board_->GetHistory()[i]) :
-                    //	    std::clog << dye::blue(this->board_->GetHistory()[i]);
-                    //}
-                    //std::clog << std::endl;
 					
-                    this->Pause();
+                    std::clog << "Your moves: " << this->buffer_ << std::endl;
+
+                    utils::ConsolePause();
 					
 	                return EXIT_SUCCESS;
 	            }
@@ -172,30 +154,13 @@ public:
     }
 
 private:
-
-    // TODO REMOVE IT FROM THIS CLASS
-    void Clear() {
-        std::clog << dye::white('\n');
-		#if defined(_WIN32)
-			system("cls");
-		#else
-			system("clear");
-		#endif
-    }
-    //
-
-    // TODO REMOVE IT FROM THIS CLASS
-    void Pause() {
-		#if defined(_WIN32)
-			system("pause");
-		#endif
-    }
-    //
-
     std::unique_ptr<Board> board_;
     ISolver* solver_;
 
+    std::string buffer_;
     std::shared_ptr<Player> firstPlayer_;
     std::shared_ptr<Player> secondPlayer_;
     std::shared_ptr<Player> currentPlayer_;
+
+    bool isHotseat_;
 };

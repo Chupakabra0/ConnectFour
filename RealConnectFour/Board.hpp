@@ -1,5 +1,7 @@
 #pragma once
-#define NOMINMAX
+#ifndef NOMINMAX
+    #define NOMINMAX
+#endif
 
 #include <array>
 #include <functional>
@@ -10,6 +12,8 @@
 #include <deque>
 
 #include "Enums.hpp"
+#include "Utils.hpp"
+
 #include "include/color.hpp"
 
 class Board {
@@ -39,16 +43,20 @@ public:
             return;
         }
 
-        // TODO some util-func
-		const std::string delimiter(4 * this->columnsCount_ + this->columnsCount_ / 7, '-');
-
+		out << "| " << 1 << " | ";
+		for (auto i = 1; i < this->columnsCount_; ++i) {
+			out << i + 1 << " | ";
+		}
+		out << std::endl
+    		<< utils::GetDelimiter('-', 4 * this->columnsCount_ + this->columnsCount_ / 7) << std::endl;
+    	
         for (auto i = 0; i < this->rowsCount_; ++i) {
             out << "| " << Board::ColorPrintCell(this->GetCell(i, 0), playerSymbols) << " | ";
             for (auto j = 1; j < this->columnsCount_; ++j) {
                 out << Board::ColorPrintCell(this->GetCell(i, j), playerSymbols) << " | ";
             }
 
-            out << std::endl << delimiter;
+            out << std::endl << utils::GetDelimiter('-', 4 * this->columnsCount_ + this->columnsCount_ / 7);
             if (i != this->rowsCount_ - 1) {
                 out << std::endl;
             }
@@ -123,7 +131,7 @@ public:
     }
 
 	template<class OutIter>
-	[[nodiscard]] bool TryGetAvailableMoves(OutIter result) const {
+	bool TryGetAvailableMoves(OutIter result) const {
 		try {
 			for (auto i = 0; i < this->columnsCount_; ++i) {
 				if (this->field_[i] == ' ') {
@@ -222,22 +230,6 @@ private:
     short rowsCount_ = 6, columnsCount_ = 7;
     std::vector<char> field_;
     std::deque<short> historyMoves_;
-
-	/*[[nodiscard]] char CheckWindow(const std::vector<char>& window) const {
-		if (window.empty()) {
-			throw std::exception("FUCK, window is empty");
-		}
-
-		const auto firstEl = *window.cbegin();
-		const auto countSymbol
-			= std::count_if(window.cbegin() + 1, window.cend(), [&firstEl](auto el) { return firstEl == el; });
-		
-		if (countSymbol == 3) {
-			return firstEl;
-		}
-
-		return ' ';
-	}*/
 
 	bool CancelMove(short column) {
 		auto index = static_cast<int>(column);

@@ -158,6 +158,7 @@
     <ClInclude Include="Player.hpp" />
     <ClInclude Include="Solver.hpp" />
     <ClInclude Include="TranspositionTable.hpp" />
+    <ClInclude Include="Utils.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

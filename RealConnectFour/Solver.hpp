@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ranges>
+#include <unordered_map>
 
 #include "ISolver.hpp"
 #include "TranspositionTable.hpp"
@@ -10,15 +11,15 @@ enum PlayerScore : short {
 	PLAYER_THREE_IN_A_ROW = 20,
 	PLAYER_TWO_IN_A_ROW = 10,
 	PLAYER_CENTER = 40,
-	PLAYER_NEAR_CENTER = -10,
+	PLAYER_NEAR_CENTER = 0,
 	PLAYER_NEAR_EDGE = -10,
 	PLAYER_EDGE = -10
 };
 
 enum OpponentScore : short {
-	OPPONENT_FOUR_IN_A_ROW = -100,
+	OPPONENT_FOUR_IN_A_ROW = -101,
 	OPPONENT_THREE_IN_A_ROW = -100,
-	OPPONENT_TWO_IN_A_ROW = -30,
+	OPPONENT_TWO_IN_A_ROW = -10,
 	OPPONENT_CENTER = 0,
 	OPPONENT_NEAR_CENTER = 0,
 	OPPONENT_NEAR_EDGE = 0,
@@ -76,7 +77,7 @@ public:
 	}
 
 private:
-	const std::unordered_map<short, std::pair<PlayerScore, OpponentScore>> columnsOrder{
+	const std::unordered_map<short, std::pair<PlayerScore, OpponentScore>> columnsOrder {
 		{3, { PlayerScore::PLAYER_CENTER, OpponentScore::OPPONENT_CENTER }},
 		{2, { PlayerScore::PLAYER_NEAR_CENTER, OpponentScore::OPPONENT_NEAR_CENTER }},
 		{4, { PlayerScore::PLAYER_NEAR_CENTER, OpponentScore::OPPONENT_NEAR_CENTER }},
@@ -85,7 +86,7 @@ private:
 		{0, { PlayerScore::PLAYER_EDGE, OpponentScore::OPPONENT_EDGE }},
 		{6, { PlayerScore::PLAYER_EDGE, OpponentScore::OPPONENT_EDGE }}
 	};
-
+	
 	TranspositionTable table_;
 	
 	int depth_;
@@ -108,7 +109,6 @@ private:
 			
 			if (board.TryGetRow(i, rows.begin())) {
 				for (auto j = 0; j < rows.size() - 3; ++j) {
-					// TODO: advanced check (odd-even strategy)
 					score += this->ScoreWindow({ rows.cbegin() + j, rows.cbegin() + j + 4 }, players);
 				}
 			}
@@ -205,10 +205,10 @@ private:
 	}
 
 	[[nodiscard]] std::pair<int, short> PrunedMiniMax(const Board& board, const std::pair<Player, Player>& players,
-		const int depth, const int alpha, const int beta, const bool isMax) {
+		int depth, const int alpha, const int beta, const bool isMax) {
 		const auto winCode = board.GetWinnerCharacter();
 		short bestMove = -1;
-		
+
 		if (winCode == players.first.GetCharacter()) {
 			return { PlayerScore::PLAYER_FOUR_IN_A_ROW * (depth + 1), bestMove };
 		}
@@ -221,14 +221,15 @@ private:
 		availableMoves.erase(std::ranges::remove(availableMoves, -1).begin(), availableMoves.cend());
 		availableMoves.shrink_to_fit();
 
-		// TODO: norm rand
 		bestMove = availableMoves.empty() ? bestMove : *(availableMoves.begin() + rand() % availableMoves.size());
 		
 		if (winCode == ' ') {
 			return { 0, bestMove };
 		}
 
-		if (depth <= 0 || depth > board.GetSize() - board.GetNumberOfMoves()) {
+		depth = board.GetSize() - board.GetNumberOfMoves() <= depth ? board.GetSize() - board.GetNumberOfMoves() : depth;
+		
+		if (depth <= 0) {
 			return { this->ScoreBoard(board, players), bestMove };
 		}
 
@@ -237,68 +238,73 @@ private:
 			return { temp.points, temp.bestMove };
 		}
 		
-		// TODO implement new methods
 		return this->PrunedMiniMaxWrapper(board, players, depth, alpha, beta, isMax);
+	}
+
+	[[nodiscard]] std::pair<int, short> MiniWrapper(const Board& board, const std::pair<Player, Player>& players,
+		int depth, int alpha, int beta) {
+
+		auto [bestScore, bestMove] = std::make_pair(std::numeric_limits<int>::max(), -1);
+		
+		for (const auto& column : this->columnsOrder | std::views::keys) {
+			auto tempBoard = board;
+
+			if (tempBoard.MakeMove(column, players.second.GetCharacter())) {
+				const auto score = this->PrunedMiniMax(tempBoard, players, depth - 1, alpha, beta, true).first;
+
+				if (score < bestScore) {
+					bestScore = score;
+					bestMove = column;
+				}
+
+				beta = std::min(beta, bestScore);
+
+				if (alpha >= beta) {
+					break;
+				}
+			}
+		}
+
+		return std::make_pair(bestScore, bestMove);
+	}
+
+	[[nodiscard]] std::pair<int, short> MaxWrapper(const Board& board, const std::pair<Player, Player>& players,
+		int depth, int alpha, int beta) {
+
+		auto [bestScore, bestMove] = std::make_pair(std::numeric_limits<int>::min(), -1);
+		
+		for (const auto& column : this->columnsOrder | std::views::keys) {
+			auto tempBoard = board;
+
+			if (tempBoard.MakeMove(column, players.first.GetCharacter())) {
+				const auto score = this->PrunedMiniMax(tempBoard, players, depth - 1, alpha, beta, false).first;
+
+				if (score > bestScore) {
+					bestScore = score;
+					bestMove = column;
+				}
+
+				alpha = std::max(alpha, bestScore);
+
+				if (alpha >= beta) {
+					break;
+				}
+			}
+		}
+
+		return std::make_pair(bestScore, bestMove);
 	}
 
 	[[nodiscard]] std::pair<int, short> PrunedMiniMaxWrapper(const Board& board, const std::pair<Player, Player>& players,
 		int depth, int alpha, int beta, const bool isMax) {
 
-		std::vector<short> moves(board.GetColumnsCount());
+		const auto [bestScore, bestMove] = isMax
+			? this->MaxWrapper(board, players, depth, alpha, beta)
+			: this->MiniWrapper(board, players, depth, alpha, beta);
 
-		depth = board.GetSize() - board.GetNumberOfMoves() <= depth ? board.GetSize() - board.GetNumberOfMoves() : depth;
+		this->table_.Insert(board, { bestScore, depth, bestMove });
 		
-		auto func = [&moves, &board, &players, depth, this](int alpha, int beta, const std::unordered_map<short, std::pair<PlayerScore, OpponentScore>>& order, bool isMax) {
-			int   bestScore = isMax ? std::numeric_limits<int>::min() : std::numeric_limits<int>::max();
-			short bestMove = -1;
-			
-			if (isMax) {
-				for (const auto& column : order | std::views::keys) {
-					auto tempBoard = board;
-
-					if (tempBoard.MakeMove(column, players.first.GetCharacter())) {
-						const auto score = this->PrunedMiniMax(tempBoard, players, depth - 1, alpha, beta, !isMax).first;
-
-						if (score > bestScore) {
-							bestScore = score;
-							bestMove = column;
-						}
-
-						alpha = std::max(alpha, bestScore);
-
-						if (alpha >= beta) {
-							break;
-						}
-					}
-				}
-			}
-			else {
-				for (const auto& column : order | std::views::keys) {
-					auto tempBoard = board;
-
-					if (tempBoard.MakeMove(column, players.second.GetCharacter())) {
-						const auto score = this->PrunedMiniMax(tempBoard, players, depth - 1, alpha, beta, !isMax).first;
-
-						if (score < bestScore) {
-							bestScore = score;
-							bestMove = column;
-						}
-
-						beta = std::min(beta, bestScore);
-
-						if (alpha >= beta) {
-							break;
-						}
-					}
-				}
-			}
-
-			this->table_.Insert(board, { bestScore, depth, bestMove });
-			
-			return std::pair{ bestScore, bestMove };
-		};
-
-		return func(alpha, beta, this->columnsOrder, isMax);
+		return std::make_pair(bestScore, bestMove);
 	}
 
 	[[nodiscard]] short PickBestMove(const Board& board, const std::pair<Player, Player>& players) const {
