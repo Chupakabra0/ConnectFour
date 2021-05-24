@@ -2,7 +2,8 @@
 #include <string>
 #include <sstream>
 
-#include "include/color.hpp"
+#include <fmt/color.h>
+//#include "include/color.hpp"
 
 namespace utils {
 	inline int StrToInt(const std::string& str) {
@@ -20,7 +21,7 @@ namespace utils {
 	}
 
 	inline void ConsoleClear() {
-		std::clog << dye::white('\n');
+		fmt::print(fg(fmt::color::white), "\n");
 		#if defined(_WIN32)
 			system("cls");
 		#else

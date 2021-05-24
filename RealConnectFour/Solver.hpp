@@ -7,19 +7,19 @@
 #include "TranspositionTable.hpp"
 
 enum PlayerScore : short {
-	PLAYER_FOUR_IN_A_ROW = 100,
-	PLAYER_THREE_IN_A_ROW = 20,
-	PLAYER_TWO_IN_A_ROW = 10,
-	PLAYER_CENTER = 40,
-	PLAYER_NEAR_CENTER = 0,
-	PLAYER_NEAR_EDGE = -10,
-	PLAYER_EDGE = -10
+	PLAYER_FOUR_IN_A_ROW = 10,
+	PLAYER_THREE_IN_A_ROW = 7,
+	PLAYER_TWO_IN_A_ROW = 1,
+	PLAYER_CENTER = 2,
+	PLAYER_NEAR_CENTER = -1,
+	PLAYER_NEAR_EDGE = -1,
+	PLAYER_EDGE = -1
 };
 
 enum OpponentScore : short {
-	OPPONENT_FOUR_IN_A_ROW = -101,
-	OPPONENT_THREE_IN_A_ROW = -100,
-	OPPONENT_TWO_IN_A_ROW = -10,
+	OPPONENT_FOUR_IN_A_ROW = -20,
+	OPPONENT_THREE_IN_A_ROW = -9,
+	OPPONENT_TWO_IN_A_ROW = 0,
 	OPPONENT_CENTER = 0,
 	OPPONENT_NEAR_CENTER = 0,
 	OPPONENT_NEAR_EDGE = 0,
@@ -209,11 +209,13 @@ private:
 		const auto winCode = board.GetWinnerCharacter();
 		short bestMove = -1;
 
+		depth = board.GetSize() - board.GetNumberOfMoves() <= depth ? board.GetSize() - board.GetNumberOfMoves() : depth;
+
 		if (winCode == players.first.GetCharacter()) {
 			return { PlayerScore::PLAYER_FOUR_IN_A_ROW * (depth + 1), bestMove };
 		}
 		if (winCode == players.second.GetCharacter()) {
-			return { OpponentScore::OPPONENT_FOUR_IN_A_ROW * (this->depth_ - depth + 1), bestMove };
+			return { OpponentScore::OPPONENT_FOUR_IN_A_ROW * (depth + 1), bestMove };
 		}
 
 		std::vector<short> availableMoves(board.GetColumnsCount(), -1);
@@ -227,8 +229,6 @@ private:
 			return { 0, bestMove };
 		}
 
-		depth = board.GetSize() - board.GetNumberOfMoves() <= depth ? board.GetSize() - board.GetNumberOfMoves() : depth;
-		
 		if (depth <= 0) {
 			return { this->ScoreBoard(board, players), bestMove };
 		}
@@ -284,6 +284,10 @@ private:
 					bestMove = column;
 				}
 
+				//if (this->depth_ == depth) {
+				//	std::cout << score << " ";
+				//}
+
 				alpha = std::max(alpha, bestScore);
 
 				if (alpha >= beta) {
@@ -291,6 +295,10 @@ private:
 				}
 			}
 		}
+
+		//if (this->depth_ == depth) {
+		//	system("pause");
+		//}
 
 		return std::make_pair(bestScore, bestMove);
 	}

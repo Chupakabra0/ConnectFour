@@ -5,7 +5,6 @@
 
 #include <array>
 #include <functional>
-#include <iostream>
 #include <numeric>
 #include <stdexcept>
 #include <vector>
@@ -14,7 +13,8 @@
 #include "Enums.hpp"
 #include "Utils.hpp"
 
-#include "include/color.hpp"
+//#include "include/color.hpp"
+#include <fmt/color.h>
 
 class Board {
 public:
@@ -37,32 +37,35 @@ public:
     Board& operator=(const Board&) = default;
     Board& operator=(Board&&) noexcept = default;
 
-    template<class Type>
-    void ColorPrint(std::basic_ostream<Type>& out, const std::pair<char, char>& playerSymbols) {
+    void ColorPrint(const std::pair<char, char>& playerSymbols) {
         if (this->field_.empty()) {
             return;
         }
 
-		out << "| " << 1 << " | ";
+		fmt::print("| {} | ", 1);
 		for (auto i = 1; i < this->columnsCount_; ++i) {
-			out << i + 1 << " | ";
+			fmt::print("{} | ", i + 1);
 		}
-		out << std::endl
-    		<< utils::GetDelimiter('-', 4 * this->columnsCount_ + this->columnsCount_ / 7) << std::endl;
+		fmt::print("\n{}\n", utils::GetDelimiter('-', 4 * this->columnsCount_ + this->columnsCount_ / 7));
     	
         for (auto i = 0; i < this->rowsCount_; ++i) {
-            out << "| " << Board::ColorPrintCell(this->GetCell(i, 0), playerSymbols) << " | ";
+
+        	fmt::print("| ");
+			Board::ColorPrintCell(this->GetCell(i, 0), playerSymbols);
+        	fmt::print(" | ");
+        	
             for (auto j = 1; j < this->columnsCount_; ++j) {
-                out << Board::ColorPrintCell(this->GetCell(i, j), playerSymbols) << " | ";
+				Board::ColorPrintCell(this->GetCell(i, j), playerSymbols);
+            	fmt::print(" | ");
             }
 
-            out << std::endl << utils::GetDelimiter('-', 4 * this->columnsCount_ + this->columnsCount_ / 7);
+			fmt::print("\n{}", utils::GetDelimiter('-', 4 * this->columnsCount_ + this->columnsCount_ / 7));
             if (i != this->rowsCount_ - 1) {
-                out << std::endl;
+				fmt::print("\n");
             }
         }
 
-        out << std::endl;
+		fmt::print("\n");
     }
 
     //-------------------------------------------- ACCESSOR SECTION --------------------------------------------------//
@@ -216,10 +219,12 @@ public:
         return this->historyMoves_.size();
     }
 
-    static auto ColorPrintCell(const char cell, const std::pair<char, char>& playerSymbols) {
-        return cell == playerSymbols.first ?
-            dye::red(cell) :
-            cell == playerSymbols.second ? dye::yellow(cell) : dye::white(cell);
+    static void ColorPrintCell(const char cell, const std::pair<char, char>& playerSymbols) {
+        return cell == playerSymbols.first
+    		? fmt::print(fg(fmt::color::dark_red), "{}", cell)
+    		: cell == playerSymbols.second
+    			? fmt::print(fg(fmt::color::green_yellow), "{}", cell)
+    			: fmt::print(fg(fmt::color::white), "{}", cell);
     }
 
 	bool CancelLastMove() {

@@ -8,7 +8,8 @@
 #include "ISolver.hpp"
 #include "Utils.hpp"
 
-#include "include/color.hpp"
+//#include "include/color.hpp"
+#include <iostream>
 
 class Game {
 public:
@@ -73,20 +74,28 @@ public:
     	
         while (true) {
             if (this->currentPlayer_ == this->firstPlayer_ || this->isHotseat_) {
-                this->board_->ColorPrint(std::clog,
-                    { this->firstPlayer_->GetCharacter(), this->secondPlayer_->GetCharacter() });
+                this->board_->ColorPrint
+            		({ this->firstPlayer_->GetCharacter(), this->secondPlayer_->GetCharacter() });
                 //std::clog << "Unique key: " << dye::bright_white(this->board_->ToKey()) << std::endl;
-                std::clog << "Make a move. Enter the value " << 1 << "-" << this->board_->GetColumnsCount() << std::endl;
+                //std::clog << "Make a move. Enter the value " << 1 << "-" << this->board_->GetColumnsCount() << std::endl;
 
+                fmt::print("Make a move. Enter the value {}-{}\n", 1, this->board_->GetColumnsCount());
+            	
                 if (!this->board_->GetHistory().empty()) {
-                    std::clog << "Move was made in " << dye::green(this->board_->GetLastMove() + 1) << " column" << std::endl;
+                    //std::clog << "Move was made in " << dye::green(this->board_->GetLastMove() + 1) << " column" << std::endl;
+                    fmt::print("Move was made in ");
+                    fmt::print(fg(fmt::color::green), "{}", this->board_->GetLastMove() + 1);
+                    fmt::print(" column\n");
+                	
                     if (isTime) {
-                        std::clog << "Time: " << dye::light_aqua(time) << std::endl;
+                        //std::clog << "Time: " << dye::light_aqua(time) << std::endl;
+                        fmt::print("Time: ");
+                        fmt::print(fg(fmt::color::aqua), "{}\n", time.count());
                     }
                 }
-               	std::clog << Board::ColorPrintCell(this->currentPlayer_->GetCharacter(),
-                    {this->firstPlayer_->GetCharacter(), this->secondPlayer_->GetCharacter()}) << " Make move: ";
-                std::clog << std::flush;
+            	
+               	Board::ColorPrintCell(this->currentPlayer_->GetCharacter(), {this->firstPlayer_->GetCharacter(), this->secondPlayer_->GetCharacter()});
+                fmt::print(" Make move: ");
 
                 std::string moveStr;
                 std::cin >> moveStr;
@@ -95,18 +104,22 @@ public:
                 utils::ConsoleClear();
         	
         		if (move < 0 || move >= this->board_->GetColumnsCount()) {
-                    std::clog << dye::red("This column doesn't exist!") << std::endl;
+                    //std::clog << dye::red("This column doesn't exist!") << std::endl;
+                    fmt::print(fmt::fg(fmt::color::red), "{}\n", "This column doesn't exist!");	
                     continue;
         		}
                 if (!this->currentPlayer_->MakeMove(this->board_.get(), move)) {
-                    std::clog << dye::red("This column was filled!") << std::endl;
+                    /*std::clog << dye::red("This column was filled!") << std::endl;*/
+                    fmt::print(fmt::fg(fmt::color::red), "{}\n", "This column doesn't exist!");
                     continue;
                 }
 
                 buffer_ += moveStr + ' ';
             }
             else {
-                std::clog << dye::yellow("Computer is thinking a lot...");
+                //std::clog << dye::yellow("Computer is thinking a lot...");
+                fmt::print(fmt::fg(fmt::color::yellow), "{}\n", "Computer is thinking a lot...");
+
                 const auto begin = std::chrono::steady_clock::now();
                 if (!this->currentPlayer_->MakeMove(this->board_.get(),
                     this->solver_->Solve(*this->board_, { *this->secondPlayer_, *this->firstPlayer_ }))) {
@@ -122,25 +135,31 @@ public:
 
             switch (this->board_->GetWinnerCharacter()) {
 				case 'X': case 'O': {
-	                std::clog << Board::ColorPrintCell(this->currentPlayer_->GetCharacter(),
-                        { this->firstPlayer_->GetCharacter(), this->secondPlayer_->GetCharacter() }) << dye::green(" player has won!") << std::endl;
-                    this->board_->ColorPrint(std::clog,
+                    Board::ColorPrintCell(this->currentPlayer_->GetCharacter(),
                         { this->firstPlayer_->GetCharacter(), this->secondPlayer_->GetCharacter() });
 					
-                    std::clog << "Your moves: " << this->buffer_ << std::endl;
-
+                    fmt::print(fg(fmt::color::green), " {}\n", "player has won!");
+					
+                    this->board_->ColorPrint
+						({ this->firstPlayer_->GetCharacter(), this->secondPlayer_->GetCharacter() });
+					
+                    //std::clog << "Your moves: " << this->buffer_ << std::endl;
+                    fmt::print("{}", this->buffer_);
+					
                     utils::ConsolePause();
 
 	                return EXIT_SUCCESS;
 	            }
                 case ' ': {
-	                std::clog << "It's a tie" << std::endl;
-                    this->board_->ColorPrint(std::clog,
-                        { this->firstPlayer_->GetCharacter(), this->secondPlayer_->GetCharacter() });
+	                //std::clog << "It's a tie" << std::endl;
+                    fmt::print("{}\n", this->buffer_);
+                    this->board_->ColorPrint
+						({ this->firstPlayer_->GetCharacter(), this->secondPlayer_->GetCharacter() });
 					
-                    std::clog << "Your moves: " << this->buffer_ << std::endl;
+                    //std::clog << "Your moves: " << this->buffer_ << std::endl;
+                    fmt::print("{}\n", this->buffer_);
 
-                    utils::ConsolePause();
+					utils::ConsolePause();
 					
 	                return EXIT_SUCCESS;
 	            }

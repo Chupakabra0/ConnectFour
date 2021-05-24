@@ -35,9 +35,6 @@
     <ClInclude Include="Solver.hpp">
       <Filter>Исходные файлы</Filter>
     </ClInclude>
-    <ClInclude Include="include\color.hpp">
-      <Filter>Исходные файлы</Filter>
-    </ClInclude>
     <ClInclude Include="TranspositionTable.hpp">
       <Filter>Исходные файлы</Filter>
     </ClInclude>
@@ -47,5 +44,8 @@
     <ClInclude Include="Utils.hpp">
       <Filter>Исходные файлы</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>
