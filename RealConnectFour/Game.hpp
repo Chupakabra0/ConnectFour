@@ -2,14 +2,14 @@
 
 #include <memory>
 #include <thread>
+#include <iostream>
 
 #include "Board.hpp"
 #include "Player.hpp"
 #include "ISolver.hpp"
 #include "Utils.hpp"
 
-//#include "include/color.hpp"
-#include <iostream>
+#include "include/fmt/color.h"
 
 class Game {
 public:

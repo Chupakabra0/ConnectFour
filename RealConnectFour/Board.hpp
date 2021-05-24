@@ -13,8 +13,7 @@
 #include "Enums.hpp"
 #include "Utils.hpp"
 
-//#include "include/color.hpp"
-#include <fmt/color.h>
+#include "include/fmt/color.h"
 
 class Board {
 public:
